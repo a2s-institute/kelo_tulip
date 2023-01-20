@@ -115,18 +115,22 @@ void readWheelConfig(const rclcpp::Node& nh) {
 		kelo::WheelConfig config;
 		config.enable = true;
 		config.reverseVelocity = true;
+		config.ethercatNumber = nh->get_param(groupName + "/ethercat_number")
+		config.x = nh->get_param(groupName + "/x", config.x)
+		config.y = nh->get_param(groupName + "/y", config.y)
+		config.a = nh->get_param(groupName + "/a", config.a);
+
 		bool ok =		
-		     nh.getParam(groupName + "/ethercat_number", config.ethercatNumber)
-		  && nh.getParam(groupName + "/x", config.x)
-			&& nh.getParam(groupName + "/y", config.y)
-			&& nh.getParam(groupName + "/a", config.a);
+		     config.ethercatNumber
+		  && config.x && config.y && config.a;
 
 		int critical = 1;
-		if (nh.getParam(groupName + "/critical", critical))
-			config.critical = critical;
+		if (nh->get_param(groupName + "/critical"))
+			config.critical = nh->get_param(groupName + "/critical") ;
 
 		int reverseVelocity = 0;
-		if (nh.getParam(groupName + "/reverse_velocity", reverseVelocity))
+		reverseVelocity = nh->get_param(groupName + "/reverse_velocity")
+		if (nh.getParam(groupName + "/reverse_velocity"))
 			config.reverseVelocity = (reverseVelocity != 0);
 
 		if (!ok)
@@ -424,7 +428,7 @@ int main (int argc, char** argv)
 	rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("platform_driver");
 	
-	nh.getParam("num_wheels", nWheels);
+	auto nWheels = node->get_parameter("num_wheels").get_parameter_value();
 	
 	if (nWheels == 0) {
 		RCLCPP_ERROR("Missing number of wheels in config file");
@@ -453,13 +457,13 @@ int main (int argc, char** argv)
 		modules.push_back(robileMasterBattery);
 	}
 
-	std::string device;
-	int nWheelsMaster;
-	bool ok = nh.getParam("device", device);
+	std::string device = node->get_parameter("device").get_parameter_value().get<std::string>();
+	int nWheelsMaster = node->get_parameter("num_wheels").get_parameter_value().get<int>();
+	// bool ok = device; //TODO: ROS2 doesn't have a way to check if parameters exist
 
 //TODO check
 		
-	bool hasNumWheel = nh.getParam("num_wheels", nWheelsMaster);
+	// bool hasNumWheel = node->get_parameter("num_wheels", nWheelsMaster);
     int firstWheel = 0;
 
 	driver = new kelo::PlatformDriver(device, modules, &wheelConfigs, &wheelData, firstWheel, nWheelsMaster);
