@@ -1,20 +1,33 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
 project(kelo_tulip)
 
-find_package(catkin REQUIRED COMPONENTS
-	roscpp
-	geometry_msgs
-	nav_msgs
-	sensor_msgs
-	std_msgs
-	tf
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+# find_package(catkin REQUIRED COMPONENTS
+# 	roscpp
+# 	geometry_msgs
+# 	nav_msgs
+# 	sensor_msgs
+# 	std_msgs
+# 	tf
+# )
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 
 #set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS thread)
 
 if(WIN32)
-	set(INCLUDE_DIRS
+	set(INCLUDE_DIRS_KELO
 		include
 		include/kelo_tulip/soem
 		include/kelo_tulip/soem/osal
@@ -23,7 +36,7 @@ if(WIN32)
 		${WINPCAP_INCLUDE_DIRS}
 	)
 else(WIN32)
-	set(INCLUDE_DIRS
+	set(INCLUDE_DIRS_KELO
 		include
 		include/kelo_tulip/soem
 		include/kelo_tulip/soem/osal
@@ -32,14 +45,9 @@ else(WIN32)
 	)
 endif(WIN32)
 
-catkin_package(
-	INCLUDE_DIRS ${INCLUDE_DIRS} 
-	LIBRARIES tulip_velocity_controller
-)
-
 include_directories(
-	${INCLUDE_DIRS}
-	${catkin_INCLUDE_DIRS}
+	${INCLUDE_DIRS_KELO}
+	# ${catkin_INCLUDE_DIRS}
 )
 
 # Optionally apply cap_net_raw+ep permissions to binary. Requires root previleges.
@@ -59,8 +67,9 @@ add_library(tulip_velocity_controller
 )
 
 target_link_libraries(tulip_velocity_controller
-	${catkin_LIBRARIES}
+	# ${catkin_LIBRARIES}
 	${Boost_LIBRARIES}
+	${rclcpp_LIBRARIES}
 )
 
 add_executable(platform_driver
@@ -72,10 +81,11 @@ add_executable(platform_driver
 
 target_link_libraries(platform_driver
 	tulip_velocity_controller
-	${catkin_LIBRARIES}
+	# ${catkin_LIBRARIES}
 	${Boost_LIBRARIES}
 	soem
 	pthread
+	${rclcpp_LIBRARIES}
 )
 
 IF(USE_SETCAP)
@@ -85,20 +95,33 @@ IF(USE_SETCAP)
 endif(USE_SETCAP)
 
 install(TARGETS platform_driver
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(DIRECTORY config/
-	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+	DESTINATION share/${PROJECT_NAME}/config
 )
 
 install(DIRECTORY launch/
-	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+	DESTINATION share/${PROJECT_NAME}/launch
 )
 
+ament_export_include_directories(
+	include
+	${INCLUDE_DIRS_KELO}
+)
+
+ament_export_libraries(
+	tulip_velocity_controller
+)
+
+ament_package(
+	# INCLUDE_DIRS ${INCLUDE_DIRS} 
+	# LIBRARIES tulip_velocity_controller
+)
