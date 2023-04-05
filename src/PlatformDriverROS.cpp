@@ -62,7 +62,6 @@
 #include <string>
 
 using namespace tf2;
-using std::placeholders::_1;
 
 class PlatormDriver : public rclcpp::Node
 {
@@ -124,7 +123,7 @@ public:
 		}
 
 		std::string device;
-		int nWheelsMaster;
+		unsigned int nWheelsMaster;
 		this->declare_parameter("device", rclcpp::ParameterType::PARAMETER_STRING);
 		if (!this->get_parameter("device", device))
 		{
@@ -135,7 +134,7 @@ public:
 		{
 			RCLCPP_ERROR_STREAM(this->get_logger(), "zero num_wheels are found");
 		}
-		int firstWheel = 0;
+		unsigned int firstWheel = 0;
 
 		driver = new kelo::PlatformDriver(device, modules, &wheelConfigs, &wheelData, firstWheel, nWheelsMaster);
 
@@ -215,9 +214,9 @@ public:
 		errorPublisher = this->create_publisher<std_msgs::msg::Int32>("error", 10);
 		statusPublisher = this->create_publisher<std_msgs::msg::Int32>("status", 10);
 
-		joySubscriber = this->create_subscription<sensor_msgs::msg::Joy>("/joy", 1000, std::bind(&PlatormDriver::joyCallback, this, _1));
-		cmdVelSubscriber = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 1000, std::bind(&PlatormDriver::cmdVelCallback, this, _1));
-		resetSubscriber = this->create_subscription<std_msgs::msg::Empty>("reset", 1, std::bind(&PlatormDriver::resetCallback, this, _1));
+		joySubscriber = this->create_subscription<sensor_msgs::msg::Joy>("/joy", 1000, std::bind(&PlatormDriver::joyCallback, this, std::placeholders::_1));
+		cmdVelSubscriber = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 1000, std::bind(&PlatormDriver::cmdVelCallback, this, std::placeholders::_1));
+		resetSubscriber = this->create_subscription<std_msgs::msg::Empty>("reset", 1, std::bind(&PlatormDriver::resetCallback, this, std::placeholders::_1));
 
 		odom_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
@@ -238,7 +237,7 @@ private:
 	// double r_w = 0.074; //the radius of the wheel
 	double r_w = 0.0524; // the radius of the wheel
 
-	int nWheels = 0;
+	unsigned int nWheels = 0;
 
 	bool useJoy = false;
 	bool debugMode = false;
@@ -276,7 +275,7 @@ private:
 
 	void readWheelConfig()
 	{
-		for (int i = 0; i < nWheels; i++)
+		for (unsigned int i = 0; i < nWheels; i++)
 		{
 			std::stringstream ssGroupName;
 			ssGroupName << "wheel" << i;
@@ -370,7 +369,7 @@ private:
 	{
 		prev_left_enc.resize(nWheels, 0);
 		prev_right_enc.resize(nWheels, 0);
-		for (int i = 0; i < nWheels; i++)
+		for (unsigned int i = 0; i < nWheels; i++)
 		{
 			// txpdo1_t *swDataInit = driver->getProcessData(wheelConfigs[i].ethercatNumber);
 
@@ -390,7 +389,7 @@ private:
 		va = 0;
 		encDisplacement = 0;
 
-		for (int i = 0; i < nWheels; i++)
+		for (unsigned int i = 0; i < nWheels; i++)
 		{
 			txpdo1_t *swData = driver->getProcessData(wheelConfigs[i].ethercatNumber);
 			std::vector<double> encoderValue = driver->getEncoderValue(i);
