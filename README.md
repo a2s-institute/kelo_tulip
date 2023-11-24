@@ -11,19 +11,20 @@ You can move your mobile platform via a joypad for test purposes or use any soft
 
 ## System requirements
 
-This software was tested on Ubuntu 16 with ROS Kinetic, Ubuntu 18 with ROS Melodic and Ubuntu 20 with ROS Noetic. Other Linux flavors should work as well.
+This software was tested on Ubuntu 22.04 with ROS Humble  and ROS Rolling. Please switch to `ros1` branch to use other tested versions: Ubuntu 16 with ROS Kinetic, Ubuntu 18 with ROS Melodic and Ubuntu 20 with ROS Noetic. Other Linux flavors should work as well.
 
-For ROS it is enough to install the base system (for Noetic ros-noetic-ros-base). In addition it requires
+For ROS it is enough to install the base system (for Humble ros-humble-ros-base). Additionally, GSL library should be installed, as it is used for the feature of compliant control of the wheels.
 
 ```
-sudo apt install ros-noetic-tf
+sudo apt install ros-humble-ros-base  
+sudo apt install libgsl-dev
 ```
 
 If another ROS version is used, replace the term noetic accordingly in these commands.
 
 ## Installation
 
-The package can be compiled like any ROS package. Clone or copy it into a ROS workspace source folder and run `catkin_make` or `catkin build`, depending on your preferences.
+The package can be compiled like any ROS package. Clone or copy it into a ROS workspace source folder and run `colcon build`, depending on your preferences.
 
 
 ### Permissions
@@ -34,17 +35,9 @@ Special permissions need to be granted to the generated executable, since it nee
 sudo setcap cap_net_raw+ep <name_of_executable>
 ```
 
-Optionally, the command can be applied during the build process by passing the `-DUSE_SETCAP=ON` option to catkin. Default is `OFF`.
+The executable can be found in `install/kelo_tulip/lib` directory.
 
-```
-catkin_make -DUSE_SETCAP=ON
-```
-OR
-```
-catkin build kelo_tulip -DUSE_SETCAP=ON
-```
-
-**Note**: If you use this flag, you will be asked to input the sudo password during the build process. It might look like the build is going on but you need to lookout for `[sudo] password for <username>` in the output and enter the password after this prompt had appeared. If not, the build process will continue forever.
+**Note**: This comand is included in the CMakeLists.txt, so it will ask for user password while building kelo_tulip package. It is sometimes not visible in the terminal. It might look like the build is going on but you need to lookout for `[sudo] password for <username>` in the output and enter the password after this prompt had appeared. If not, the build process will continue forever.
 
 ### Finding dynamic libraries
 
@@ -57,13 +50,13 @@ devel/lib/kelo_tulip/platform_driver: error while loading shared libraries: libt
 
 In that case it is recommended to set the path to those libraries on system level. The following method should work on default installations, but please adapt accordingly if you already made other changes in your system.
 
-For ROS Noetic, the following command will add an entry to point to the dynamic libraries of ROS:
+For ROS2 Humble, the following command will add an entry to point to the dynamic libraries of ROS:
 
 ```
-sudo sh -c 'echo "/opt/ros/noetic/lib/" > /etc/ld.so.conf.d/ros.conf'
+sudo sh -c 'echo "/opt/ros/humble/lib/" > /etc/ld.so.conf.d/ros.conf'
 ```
 
-If not using ROS Noetic, the path there should be changed accordingly.
+If not using ROS2 Humble, the path there should be changed accordingly.
 
 Afterwards you need to run
 
@@ -79,12 +72,12 @@ to make the changes take effect.
 The program can be started by running
 
 ```
-roslaunch kelo_tulip example.launch
+ros2 launch kelo_tulip example.launch
 ```
 
 ### Parameters
 
-The default launch file in `kelo_tulip/launch/example.launch` loads the YAML configuration from `config/example.yaml`. Feel free to change parameters directly in this config file, or to make a copy and adjust the launch file to load the new file.
+The default launch file in `kelo_tulip/launch/example.launch.py` loads the YAML configuration from `config/example.yaml`. Feel free to change parameters directly in this config file, or to make a copy and adjust the launch file to load the new file.
 
 #### Network interface
 

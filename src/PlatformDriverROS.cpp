@@ -86,9 +86,21 @@ public:
 		this->declare_parameter("start_delay", rclcpp::ParameterType::PARAMETER_DOUBLE);
 		this->declare_parameter("current_max", rclcpp::ParameterType::PARAMETER_DOUBLE);
 		this->declare_parameter("start_retry_delay", rclcpp::ParameterType::PARAMETER_DOUBLE);
+		this->declare_parameter("device", rclcpp::ParameterType::PARAMETER_STRING);
+		this->declare_parameter("num_wheels", rclcpp::ParameterType::PARAMETER_INTEGER);
+		this->declare_parameter("/base_control_mode", rclcpp::ParameterType::PARAMETER_STRING);
+		this->declare_parameter("platform_Kd_x", rclcpp::ParameterType::PARAMETER_DOUBLE);
+		this->declare_parameter("platform_Kd_y", rclcpp::ParameterType::PARAMETER_DOUBLE);
+		this->declare_parameter("platform_Kd_a", rclcpp::ParameterType::PARAMETER_DOUBLE);
+
+		// get and set damping parameters
+		double damping_parameters[3];
+		this->get_parameter("platform_Kd_x", damping_parameters[0]);
+		this->get_parameter("platform_Kd_y", damping_parameters[1]);
+		this->get_parameter("platform_Kd_a", damping_parameters[2]);
+		driver->setPlatformDampingParameters(damping_parameters);
 
 		// declare wheel parameters
-		this->declare_parameter("num_wheels", rclcpp::ParameterType::PARAMETER_INTEGER);
 		this->get_parameter("num_wheels", nWheels);
 		std::cout << "Number of wheels: " << nWheels << std::endl;
 
@@ -124,7 +136,7 @@ public:
 
 		std::string device;
 		unsigned int nWheelsMaster;
-		this->declare_parameter("device", rclcpp::ParameterType::PARAMETER_STRING);
+		
 		if (!this->get_parameter("device", device))
 		{
 			RCLCPP_ERROR_STREAM(this->get_logger(), "Missing 'device' parameter");
@@ -238,6 +250,7 @@ private:
 	double r_w = 0.0524; // the radius of the wheel
 
 	unsigned int nWheels = 0;
+	std::string base_control_mode;
 
 	bool useJoy = false;
 	bool debugMode = false;
@@ -551,6 +564,13 @@ private:
 		{
 			useJoy = true;
 
+			// set base_control_mode
+
+			if (this->get_parameter("/base_control_mode", base_control_mode))
+			{
+				driver->setControlMode(base_control_mode);
+			}
+			
 			if (joy->axes[5] > 0.5 && joyScale < 1.0)
 			{
 				joyScale = joyScale * 2.0;
@@ -583,6 +603,11 @@ private:
 
 	void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg)
 	{
+		// set base_control_mode
+		if (this->get_parameter("/base_control_mode", base_control_mode))
+		{
+			driver->setControlMode(base_control_mode);
+		}		
 		// if (!useJoy && !debugMode)
 		if (!useJoy)
 			driver->setTargetVelocity(msg->linear.x, msg->linear.y, msg->angular.z);
@@ -609,6 +634,7 @@ private:
 		// calculate robot velocity
 		double vx, vy, va, encDisplacement;
 		calculateRobotVelocity(vx, vy, va, encDisplacement);
+		driver->setMeasuredVelocity(vx, vy, va);
 
 		// calculate robot displacement and current pose
 		calculateRobotPose(vx, vy, va);

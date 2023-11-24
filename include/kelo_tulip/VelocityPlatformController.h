@@ -52,6 +52,19 @@
 #include <boost/thread.hpp>
 #include <iostream>
 
+extern "C" {
+#include <kelo_tulip/KELORobotKinematics.h>
+#include <kelo_tulip/PlatformToWheelInverseKinematicsSolver.h>
+#include <kelo_tulip/SmartWheelKinematics.h>
+#include <gsl/gsl_matrix_double.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_sf_trig.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_vector_double.h>
+#include <gsl/gsl_multifit.h>
+}
+
 namespace kelo
 {
 
@@ -70,6 +83,21 @@ namespace kelo
             void setPlatformMaxDeceleration(float max_dec_linear, float max_dec_angular);
             
             void calculatePlatformRampedVelocities();
+
+            void calculateWheelTargetTorques(double *wheel_torques,
+                                            double *pivot_angles,
+                                            double *wheel_coordinates,
+                                            double *pivot_angles_deviation,
+                                            double *measured_platform_velocity,
+                                            double *platform_damping_parameters,
+                                            const gsl_matrix *K,
+                                            const gsl_matrix *W,
+                                            const unsigned int M,
+                                            const unsigned int N);
+
+            void getPivotError(const size_t &wheel_index,
+                                const float &raw_pivot_angle,
+                                float &pivot_error);
 
             void calculateWheelTargetVelocity(const size_t &wheel_index,
                                               const float &pivot_angle,
