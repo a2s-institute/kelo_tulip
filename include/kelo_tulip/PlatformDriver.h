@@ -96,7 +96,7 @@ enum DriverError {
 class PlatformDriver {
 public:
 	PlatformDriver(std::string device, std::vector<EtherCATModule*> modules,
-		std::vector<WheelConfig>* wheelConfigs, std::vector<WheelData>* wheelData, unsigned int firstWheel, unsigned int nWheels);
+		std::vector<WheelConfig>* wheelConfigs, std::vector<WheelData>* wheelData, int firstWheel, int nWheels);
 	virtual ~PlatformDriver();
 
 	bool initEthercat();
@@ -140,7 +140,7 @@ public:
 
 	void resetErrorFlags();
 
-	std::vector<double> getEncoderValue(unsigned int idx);
+	std::vector<double> getEncoderValue(int idx);
 		
 protected:
 	void ethercatHandler();
@@ -174,10 +174,10 @@ protected:
 	ecx_redportt ecx_redport;
 	ecx_contextt ecx_context;
 	
-	std::string device;
 	std::vector<EtherCATModule*> modules;
 
 	char IOmap[4096];
+	std::string device;
 	bool ethercatInitialized;
 	boost::thread* ethercatThread;
 	volatile bool stopThread;
@@ -197,9 +197,9 @@ protected:
 	volatile bool ethercatWkcError;
 	volatile bool flagReconnectSlave;
 
+	int firstWheel, nWheels;
 	std::vector<WheelConfig>* wheelConfigs;
 	std::vector<WheelData>* wheelData;
-	unsigned int firstWheel, nWheels;
 
 	double wheelDistance;
 	double wheelDiameter;
