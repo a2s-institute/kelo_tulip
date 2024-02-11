@@ -59,7 +59,7 @@ extern "C" {
 namespace kelo {
 
 PlatformDriver::PlatformDriver(std::string device, std::vector<EtherCATModule*> modules,
-			std::vector<WheelConfig>* wheelConfigs, std::vector<WheelData>* wheelData, int firstWheel, int nWheels)
+			std::vector<WheelConfig>* wheelConfigs, std::vector<WheelData>* wheelData, unsigned int firstWheel, unsigned int nWheels)
 	: modules(modules)
 	, wheelConfigs(wheelConfigs)
 	, wheelData(wheelData)
@@ -355,7 +355,6 @@ void PlatformDriver::ethercatHandler() {
 	boost::posix_time::ptime startTime = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration pastTime;
 
-	int counterIterations = 0;
 	unsigned int ethercatTimeout = 1000;
 	long int communicationErrors = 0;
 	long int maxCommunicationErrors = 100;
@@ -540,8 +539,8 @@ txpdo1_t* PlatformDriver::getProcessData(int slave) {
 	return (txpdo1_t*) ecx_slave[slave].inputs;
 }
 
-std::vector<double> PlatformDriver::getEncoderValue(int idx) {
-	if (idx < 0 || idx >= nWheels)
+std::vector<double> PlatformDriver::getEncoderValue(unsigned int idx) {
+	if (idx >= nWheels)
 		std::cout << "Failed to return encoder value. Encoder index does not match" << std::endl;
 	else
 		return sum_encoder[idx];
@@ -627,7 +626,7 @@ void PlatformDriver::resetErrorFlags() {
 int PlatformDriver::checkSmartwheelTimestamp() {
 	bool swOK = true;
 	bool criticalError = false;
-	for (int i = 0; i < nWheels; i++) {
+	for (unsigned int i = 0; i < nWheels; i++) {
 		bool error = false;
 		bool critical = false;
 		txpdo1_t* swData = getProcessData((*wheelConfigs)[i].ethercatNumber);
@@ -672,7 +671,7 @@ int PlatformDriver::checkSmartwheelTimestamp() {
 
 void PlatformDriver::updateEncoders() {
 	if(!encoderInitialized) {
-		for (int i = 0; i < nWheels; i++) {
+		for (unsigned int i = 0; i < nWheels; i++) {
 			txpdo1_t* wData = getProcessData((*wheelConfigs)[i].ethercatNumber);
 			prev_encoder[i][0] = wData->encoder_1;
 			prev_encoder[i][1] = wData->encoder_2;
@@ -681,7 +680,7 @@ void PlatformDriver::updateEncoders() {
 	}
 	
 	//count accumulative encoder value
-	for (int i = 0; i < nWheels; i++) {
+	for (unsigned int i = 0; i < nWheels; i++) {
 		txpdo1_t* wData = getProcessData((*wheelConfigs)[i].ethercatNumber);
 		double curr_encoder1 = wData->encoder_1;
 		double curr_encoder2 = wData->encoder_2;
@@ -716,7 +715,6 @@ void PlatformDriver::doStop() {
 	rxdata.limit2_n = -currentStop;
 	rxdata.setpoint1 = 0;
 	rxdata.setpoint2 = 0;
-	double totalDiffAngle = 0;
 
 	for (unsigned int i = 0; i < nWheels; i++) {
 		rxpdo1_t* ecData = (rxpdo1_t*) ecx_slave[(*wheelConfigs)[i].ethercatNumber].outputs;
@@ -742,7 +740,7 @@ void PlatformDriver::doControl() {
 	// update desired velocity of platform, based on target velocity and veloity ramps
 	velocityPlatformController.calculatePlatformRampedVelocities();
 	
-	for (size_t i = firstWheel; i < firstWheel + nWheels; i++) {
+	for (unsigned int i = firstWheel; i < firstWheel + nWheels; i++) {
 		txpdo1_t* wheel_data = getProcessData((*wheelConfigs)[i].ethercatNumber);
 
 		float setpoint1, setpoint2;
