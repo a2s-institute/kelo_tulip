@@ -98,7 +98,6 @@ public:
 		this->get_parameter("platform_Kd_x", damping_parameters[0]);
 		this->get_parameter("platform_Kd_y", damping_parameters[1]);
 		this->get_parameter("platform_Kd_a", damping_parameters[2]);
-		driver->setPlatformDampingParameters(damping_parameters);
 
 		// declare wheel parameters
 		this->get_parameter("num_wheels", nWheels);
@@ -149,6 +148,7 @@ public:
 		unsigned int firstWheel = 0;
 
 		driver = new kelo::PlatformDriver(device, modules, &wheelConfigs, &wheelData, firstWheel, nWheelsMaster);
+		driver->setPlatformDampingParameters(damping_parameters);
 
 		wheelIndex += nWheelsMaster;
 
