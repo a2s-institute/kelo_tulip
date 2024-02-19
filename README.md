@@ -1,7 +1,5 @@
-## WARNING
-
-
-    The current implementation of *torque control* is not stable, so for stable use it is recommended to use the robot in *velocity control* mode, which is enabled by default.The instability of the torque control may be due to occasional loss of contact with the ground, causing the wheels to spin at high speed.
+> [!WARNING]  
+> The current implementation of *torque control* is not stable, so for stable use it is recommended to use the robot in *velocity control* mode, which is enabled by default.The instability of the torque control may be due to occasional loss of contact with the ground, causing the wheels to spin at high speed.
 
 
 # KELO Tulip
