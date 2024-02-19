@@ -1,6 +1,12 @@
+## WARNING
+
+```
+The current implementation of *torque control* is not stable, so for stable use it is recommended to use the robot in *velocity control* mode, which is enabled by default.The instability of the torque control may be due to occasional loss of contact with the ground, causing the wheels to spin at high speed.
+```
+
 # KELO Tulip
 
-This package contains the *KELO Tulip* software. This software takes a velocity vector for the overall platform and converts it to commands for the individual KELO Drives of the platform. It implements an EtherCAT master to communicate with the KELO Drives and provides a simple velocity controller that can be used on real robots as well as for simulation.
+This package contains the *KELO Tulip* software. This software takes a velocity vector for the overall platform and converts it to commands for the individual KELO Drives of the platform with an option to control either in VELOCITY_CONTROL or in TORQUE_CONTROL modes. It implements an EtherCAT master to communicate with the KELO Drives and provides a simple velocity controller that can be used on real robots as well as for simulation.
 
 ## KELO Drives and how to build a platform
 The [KELO Drive](https://www.kelo-robotics.com/technologies/#kelo-drives) is the patent pending novel drive concept for mobile robots developed by KELO robotics. These wheels can be attached to any rigid platform in order to transform it into a mobile robot. It can even be used to [robotize a container](https://www.kelo-robotics.com/customized-designs/#robotized-material-container). A few screws are enough.
@@ -11,7 +17,7 @@ You can move your mobile platform via a joypad for test purposes or use any soft
 
 ## System requirements
 
-This software was tested on Ubuntu 22.04 with ROS Humble  and ROS Rolling. Please switch to `ros1` branch to use other tested versions: Ubuntu 16 with ROS Kinetic, Ubuntu 18 with ROS Melodic and Ubuntu 20 with ROS Noetic. Other Linux flavors should work as well.
+This software has been tested on Ubuntu 22.04 with ROS Humble and ROS Rolling. Please switch to the `ros1` branch to use other tested versions, including Ubuntu 16 with ROS Kinetic, Ubuntu 18 with ROS Melodic and Ubuntu 20 with ROS Noetic. 
 
 For ROS it is enough to install the base system (for Humble ros-humble-ros-base). Additionally, GSL library should be installed, as it is used for the feature of compliant control of the wheels.
 
@@ -20,7 +26,7 @@ sudo apt install ros-humble-ros-base
 sudo apt install libgsl-dev
 ```
 
-If another ROS version is used, replace the term noetic accordingly in these commands.
+If another ROS version is used, replace the term *humble* accordingly in these commands.
 
 ## Installation
 
@@ -41,7 +47,7 @@ The executable can be found in `install/kelo_tulip/lib` directory.
 
 ### Finding dynamic libraries
 
-If using Ubuntu 18 or newer (with ROS Melodic or Noetic), running the setcap command as described above can cause the executable to not find all dynamic libraries anymore. This is because the dynamic linker works in a "secure-execution mode" when the capabilities of a program changed, in which it ignores most environment variables such as LD_LIBRARY_PATH. A typical error after starting reads like this:
+In newer ROS verxions running the setcap command as described above can cause the executable to not find all dynamic libraries anymore. This is because the dynamic linker works in a "secure-execution mode" when the capabilities of a program changed, in which it ignores most environment variables such as LD_LIBRARY_PATH. A typical error after starting reads like this:
 
 ```
 devel/lib/kelo_tulip/platform_driver: error while loading shared libraries: libtf2_ros.so: cannot open shared object file: No such file or directory
@@ -77,14 +83,14 @@ ros2 launch kelo_tulip example.launch
 
 ### Parameters
 
-The default launch file in `kelo_tulip/launch/example.launch.py` loads the YAML configuration from `config/example.yaml`. Feel free to change parameters directly in this config file, or to make a copy and adjust the launch file to load the new file.
+The default launch file in `kelo_tulip/launch/example.launch.py` loads the YAML configuration from `config/example.yaml`. Feel free to change parameters directly in this config file, or update the environment variable `ROBOT_NAME`. Currently parameters for some of the configurations (*robile1, robile2, robile3, robile4, freddy*) are avaialble in the config folder.
 
 #### Network interface
 
 The following setting defines the network interface used by the driver:
 
 ```
-device: enp2s0
+device: eno1
 ```
 
 This setting must be adjusted to the network interface by which the KELO drives are connected via EtherCAT.
@@ -112,7 +118,7 @@ The values `x` and `y` are the coordinates of the wheels center according to the
 
 ### ROS Interfaces
 
-Currently the kelo_tulip software uses ROS as a middleware, subscribing resp. publishing to the following topics.
+Currently the kelo_tulip software uses ROS as a middleware, and publishing data to the following topics.
 
 #### /cmd_vel
 
@@ -143,6 +149,13 @@ On this topic an integer representing status information about the controller is
 | 0x0400    | Timestamp of one KELO Drive did not increase as expected, probably it stopped communicating.
 | 0x0800    | One KELO Drive did not have the expected status bits set, probably it got deactivated for some reasons.
 
+## Controllers
+
+The robot can be controlled in both velocity and torque control modes. To switch between them, the ROS parameter `/base_control_mode` can be set to either *VELOCITY_CONTROL* or *TORQUE_CONTROL*. By default it is set to *VELOCITY_CONTROL* in the configuration file. To switch between them from the command line, e.g. to torque control, the following command can be used,
+
+```
+ros2 param set /platform_driver /base_control_mode TORQUE_CONTROL
+```
 
 ### Velocity controller
 
@@ -187,19 +200,8 @@ This is the main function that computes the setpoint for the left and right hub 
 
 The result is the setpoints for the left and right hubwheel, which can then be sent to the real KELO drive.
 
+### Torque controller
 
+kelo_tulip also includes an implementation of a simple torque controller, which allows for compliant motion of the robot. The controller itself is developed in C language and it is ROS independent. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The description of how the torque controller works is as follows.The joypad command is taken as input and mapped to the platform force, which is a scaled quantity of the platform velocity difference, scaled by a factor of the *platform_damping* parameters instantiated in the configuration file. An inverse dynamics solver is used to determine the wheel torques to achieve the desired platform force. It also allows to enable/disable/provide weights both in the joint space of wheels and the Cartesian task space. For this purpose, the diagnal elements of the matrices `W` and `K` in the *doControl()* function of *PlatformDriver.cpp* should be updated. Assigning it to zero deactivates the corresponding dimension of control.
