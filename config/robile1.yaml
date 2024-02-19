@@ -5,9 +5,9 @@ platform_driver:
     device: eno1
     /base_control_mode: VELOCITY_CONTROL
 
-    platform_Kd_x: 1200.0
-    platform_Kd_y: 1200.0
-    platform_Kd_a: 400.0    
+    platform_Kd_x: 300.0
+    platform_Kd_y: 300.0
+    platform_Kd_a: 100.0  
     
     wheel0:
       ethercat_number: 3
