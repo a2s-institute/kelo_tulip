@@ -1,0 +1,39 @@
+num_wheels: 4
+vlin_max: 1.2
+
+va_max: 1.0
+
+device: eno1
+/base_control_mode: VELOCITY_CONTROL
+
+platform_Kd_x: 1200.0
+platform_Kd_y: 1200.0
+platform_Kd_a: 400.0
+
+wheel0:
+  ethercat_number: 2
+  x: 0.188
+  y: 0.2075
+  a: 5.25
+  reverse_velocity: 1
+
+wheel1:
+  ethercat_number: 10
+  x: -0.188
+  y: 0.2075
+  a: -1.55
+  reverse_velocity: 1
+
+wheel2:
+  ethercat_number: 6
+  x: -0.188
+  y: -0.2075
+  a: -1.37
+  reverse_velocity: 1
+
+wheel3:
+  ethercat_number: 11
+  x: 0.188
+  y: -0.2075
+  a: -1.23
+  reverse_velocity: 1

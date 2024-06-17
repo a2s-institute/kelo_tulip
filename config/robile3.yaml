@@ -3,7 +3,12 @@ platform_driver:
     num_wheels: 4
     num_masters: 1
     device: eno1
+    /base_control_mode: VELOCITY_CONTROL
 
+    platform_Kd_x: 300.0
+    platform_Kd_y: 300.0
+    platform_Kd_a: 100.0
+    
     vlin_max: 1.2
     va_max: 1.0
 

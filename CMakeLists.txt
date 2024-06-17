@@ -78,6 +78,9 @@ add_executable(platform_driver
 	src/PlatformDriver.cpp
 	src/PlatformDriverROS.cpp
 	src/modules/RobileMasterBattery.cpp
+	src/PlatformToWheelInverseKinematicsSolver.c
+	src/SmartWheelKinematics.c
+	src/KELORobotKinematics.c
 )
 
 ament_target_dependencies(platform_driver rclcpp std_msgs sensor_msgs geometry_msgs nav_msgs tf2 tf2_ros tf2_geometry_msgs)
@@ -89,6 +92,9 @@ target_link_libraries(platform_driver
 	${Boost_LIBRARIES}
 	soem
 	pthread
+	gsl
+	gslcblas
+	m	
 )
 
 IF(USE_SETCAP)

@@ -109,7 +109,9 @@ public:
 	void setProcessData(int slave, rxpdo1_t* data);
 
 	void setTargetVelocity(double vx, double vy, double va);
-
+	void setMeasuredVelocity(double &vx, double &vy, double &va);
+	void setPlatformDampingParameters(double *damping_parameters);
+	void setControlMode(std::string &base_control_mode);
 	void setWheelDistance(double x);
 	void setWheelDiameter(double x);
 	void setCurrentStop(double x);
@@ -174,10 +176,10 @@ protected:
 	ecx_redportt ecx_redport;
 	ecx_contextt ecx_context;
 	
-	std::string device;
 	std::vector<EtherCATModule*> modules;
 
 	char IOmap[4096];
+	std::string device;
 	bool ethercatInitialized;
 	boost::thread* ethercatThread;
 	volatile bool stopThread;
@@ -204,11 +206,16 @@ protected:
 	double wheelDistance;
 	double wheelDiameter;
 	
+	double motor_constant;
 	double maxCalibrationTime;
 	double vCalibration;
 	double currentCalibration;
 	double currentStop;
 	double currentDrive;
+
+	double measured_platform_velocity[3];
+	double platform_damping_parameters[3];
+	std::string platform_control_mode;
 
 	double maxvlin;
 	double maxva;
@@ -218,6 +225,8 @@ protected:
 
 	double wheelsetpointmin;
 	double wheelsetpointmax;
+	double torque_wheelsetpointmin;
+	double torque_wheelsetpointmax;	
 
 	volatile bool statusError;
 	volatile bool slipError;
